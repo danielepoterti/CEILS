@@ -2,11 +2,7 @@ import sys
 sys.path.append('C:/Users/danie/OneDrive/Desktop/development/CEILS')
 
 import pandas as pd
-import numpy as np
 from core.causal.build_causal_skeleton import *
-from causallearn.utils.GraphUtils import GraphUtils
-
-
 
 def load_germandataset(nodes):
     '''
@@ -52,4 +48,6 @@ def load_germandataset(nodes):
 
 df = load_germandataset(["gender", "age", "creditamount", "classification", "duration"])
 
-print(build_causal_skeleton(df))
+graph = build_causal_skeleton(df)
+pydot_graph = nx.drawing.nx_pydot.to_pydot(graph)
+pydot_graph.write_png('simple_test.png')

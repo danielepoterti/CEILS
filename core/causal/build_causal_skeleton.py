@@ -6,6 +6,19 @@ import networkx as nx
 import sys
 import os
 
+from contextlib import contextmanager
+import sys, os
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
+
 def build_causal_skeleton(df):
     
     pc_G = build_PC(df)
@@ -22,6 +35,7 @@ def build_causal_skeleton(df):
     return union_G
 
 def build_PC(df):
+    # print("PC")
     data_array = df.values
     CG = pc(data_array, node_names=df.columns.tolist(), show_progress=False)
     G = CG.G
@@ -34,10 +48,9 @@ def build_PC(df):
 
 def build_FCI(df):
     data_array = df.values
-    original_stdout = sys.stdout
-    sys.stdout = sys.stderr = open(os.devnull, 'w')
-    G, _ = fci(data_array, verbose = False, show_progress = False)
-    sys.stdout = original_stdout
+    # print("FCI")
+    with suppress_stdout():
+        G, _ = fci(data_array, verbose = False, show_progress = False)
     undirected_graph = nx.Graph()
     for edge in G.get_graph_edges():
         u = edge.get_node1().get_name()
@@ -48,11 +61,10 @@ def build_FCI(df):
     return undirected_graph
 
 def build_GES(df):
+    # print("GES")
     data_array = df.values
-    original_stdout = sys.stdout
-    sys.stdout = sys.stderr = open(os.devnull, 'w')
-    Record = ges(data_array)
-    sys.stdout = original_stdout
+    with suppress_stdout():
+        Record = ges(data_array)
     G = Record['G']
     undirected_graph = nx.Graph()
     for edge in G.get_graph_edges():
@@ -64,6 +76,7 @@ def build_GES(df):
     return undirected_graph
 
 def build_LiNGAM(df):
+    # print("lin")
     data_array = df.values
     model = lingam.ICALiNGAM(42, 700)
     model.fit(data_array)
